@@ -1,0 +1,38 @@
+{
+  "eventTime":  "${json-unit.ignore}",
+  "producer": "https://kentra-openlineage-java-lib",
+  "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+  "eventType": "START",
+  "run": {
+    "runId":  "${json-unit.ignore}",
+    "facets": {
+      "processing_engine": {
+        "_producer": "https://kentra-openlineage-java-lib",
+        "_schemaURL": "https://openlineage.io/spec/facets/1-1-1/ProcessingEngineRunFacet.json#/$defs/ProcessingEngineRunFacet",
+        "version": "1.0",
+        "name": "java",
+        "openlineageAdapterVersion": "1.34.0"
+      }
+    }
+  },
+  "job": {
+    "namespace": "java-openlineage-app",
+    "name": "Kafka listener sales-transaction",
+    "facets": {}
+  },
+  "inputs": [
+    {
+      "namespace": "${json-unit.regex}postgres://localhost:.*",
+      "name": "test.public.product",
+      "facets": {
+        "version": {
+          "_producer": "https://kentra-openlineage-java-lib",
+          "_schemaURL": "https://openlineage.io/spec/facets/1-0-1/DatasetVersionDatasetFacet.json#/$defs/DatasetVersionDatasetFacet",
+          "datasetVersion": "input-version"
+        }
+      },
+      "inputFacets": {}
+    }
+  ],
+  "outputs": []
+}

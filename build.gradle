@@ -1,0 +1,10 @@
+allprojects {
+    group = 'io.kentra'
+    version = '1.0.0'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+}

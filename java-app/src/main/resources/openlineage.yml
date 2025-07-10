@@ -1,0 +1,4 @@
+transport:
+  type: console
+#  type: http # Switch to HTTP transport after ingesting metadata in DataHub
+#  url: http://localhost:8080/openapi/openlineage/api/v1/lineage

@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:15.2:///testdb
+    username: test
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+logging:
+  level:
+    io.kentra.openlineage: DEBUG
+    io.openlineage: DEBUG
+openlineage:
+  config:
+    location: openlineage-test.yml
+wiremock:
+  server:
+    verbose: true

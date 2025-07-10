@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: java-openlineage-app
+  sql:
+    init:
+      mode: always
+  datasource:
+    url: jdbc:postgresql://localhost:5432/debezium_poc_db
+    username: postgres
+    password: postgres
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+openlineage:
+  config:
+    location: openlineage.yml
+server:
+  port: 8085
+kafka:
+  topics:
+    sales-transaction: "sales-transaction"
+    enriched-sales-transaction: "enriched-sales-transaction"
