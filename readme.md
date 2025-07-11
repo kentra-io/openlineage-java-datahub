@@ -1,4 +1,4 @@
-# Java OpenLineage-GitHub integration POC
+# Java OpenLineage-DataHub integration POC
 ## What's the purpose of this POC?
 This repository is a POC of a java library that plugs into the application and publishes OpenLineage events, that are
 used to visualize the Lineage Graph of your application (or multiple applications) in DataHub, or any other Data Catalog
