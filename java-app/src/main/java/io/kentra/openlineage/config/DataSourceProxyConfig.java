@@ -1,7 +1,7 @@
 package io.kentra.openlineage.config;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.kentra.openlineage.lineage.interceptors.jdbc.JdbcLineageInterceptor;
+import io.kentra.openlineage.lineage.interceptors.jdbc.PostgresJdbcLineageInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -25,7 +25,7 @@ public class DataSourceProxyConfig {
 
     @Bean
     @Primary
-    public DataSource dataSourceProxy(DataSource dataSource, JdbcLineageInterceptor lineageInterceptor) throws Exception {
+    public DataSource dataSourceProxy(DataSource dataSource, PostgresJdbcLineageInterceptor lineageInterceptor) throws Exception {
         String dbUrl = cleanDbUrl(dataSource.getConnection().getMetaData().getURL());
         ProxyDataSourceBuilder.SingleQueryExecution beforeQuery = (execInfo, queryInfoList) -> {
             queryInfoList.forEach(queryInfo ->

@@ -4,11 +4,10 @@ import io.kentra.openlineage.lineage.NodeMdcUtil;
 import io.kentra.openlineage.lineage.model.Node;
 import org.apache.kafka.clients.consumer.ConsumerInterceptor;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.slf4j.MDC;
 
 import java.util.Map;
 
-public class TopicThreadContextInterceptor<K, V> implements ConsumerInterceptor<K, V> {
+public class KafkaConsumerLineageInterceptor<K, V> implements ConsumerInterceptor<K, V> {
   public static String KAFKA_TOPIC_THREAD_CONTEXT_KEY = "kafkaTopic";
 
   @Override

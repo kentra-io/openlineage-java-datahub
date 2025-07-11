@@ -1,113 +1,151 @@
-# DataHub - Spring Boot Data Lineage integration POC
-## What's in this repository?
-- DataHub running locally in docker-compose
-- kafka-client-app - Spring Boot app that listens to Kafka Topics, publishes to other topics and reports lineage to DataHub
-- Apache Kafka 4.0, Schema Registry and Kafka UI in docker-compose
-
+# Java OpenLineage-GitHub integration POC
 ## What's the purpose of this POC?
-I wanted to explore and document how to report data lineage in Spring Boot event-driven microservices. 
-DataHub is AFAIK the most popular open-source data catalog, and if you want to visualize data lineage and document your 
-streaming data products - this is one of the top choices. Sadly some capabilities are not yet present or not that 
-documented, but precisely because of that I hope that this POC can be valuable.
+This repository is a POC of a java library that plugs into the application and publishes OpenLineage events, that are
+used to visualize the Lineage Graph of your application (or multiple applications) in DataHub, or any other Data Catalog
+that has proper OpenLineage integration.
 
-If you know about an open source data catalog that's supporting the Data Streaming space better, and also supports data
-contracts and data product documentation and discoverability - please let me know 
-(https://www.linkedin.com/in/jan-siekierski/).
+There is zero overhead per table / kafka topic. Once it's configured - all nodes and edges of the graph
+are collected and published.
+
+Supported technologies
+- Postgres (jdbc interceptor)
+- Kafka (consumer and producer interceptors)
+- Spring Web (not part of the library, library doesn't have Spring)
+
+### How it works:
+#### Lineage Graph Nodes
+There are two types of Nodes: 
+- Kafka Listener
+- Http Endpoint (can be extended)
+
+There are interceptors for each (SpringWebLineageInterceptor, KafkaConsumerLineageInterceptor) that put the Lineage Node
+name in the MDC context. For Kafka the node name is the topic name, for Spring Web the node name is the controller class
+name. This means that all methods on a controller will be aggregated as a single node. GET http requests don't get intercepted, because they don't change state - so don't affect lineage.
+
+Because it's MDC, please keep in mind that if you're spawning new threads you need to pass the context if you want to
+preserve lineage information.
+
+#### Lineage Registry
+
+LineageRegistry is a static class that stores a map of all node Lineages registered during application run. Whenever a 
+new input or output is registered, a LineageEvent gets emitted.
+
+This is designed for Java applications that are ran in parallel. With multiple instances, after some time each instance 
+should have the full lineage. DataHub treats lineage events in a cumulative way (not released yet, check the DataHub 
+section at the bottom), but this can differ with other Data Catalogs.
+
+#### Inputs and outputs
+
+Inputs and Outputs of a node are registered using interceptors:
+- PostgresJdbcLineageInterceptor 
+- KafkaProducerLineageInterceptor
+- KafkaConsumerLineageInterceptor
+
+The inputs/outputs are extracted and registered in LineageRegistry. If there are any new outputs/outputs of the node
+(node name is retrieved from MDC) - a LineageEvent will be emitted.
+
+#### Performance impact
+Extracting the Kafka topic is super straightforward, and for Jdbc openlineage-sql-java library is used that's a java 
+wrapper over a Rust parser - so it's pretty efficient, but parsing sql adds a little overhead so for extremely 
+latency-sensitive or high volume systems you might want to adapt this setup, for example run in nonprod only, or just turn
+it on for a few hours and then disable with some feature toggle. Especially that in this lib only table lineage is present.
+OpenLineage has many more features, like data quality, column lineage, column statistics and many others.
+
+## What's in this repository?
+### kentra-lineage library
+This library has PostgresJdbcLineageInterceptor and two Kafka interceptors. It has minimal dependencies - you can 
+use it with any framework you need. 
+
+### java-app 
+This is a SpringBootApp working as an example of how to use the library. If you're using a different framework you can
+recreate this setup easily, but you might need to create your own interceptor for Http requests - as this POC's logic is
+coupled with Spring Web.
+
+### Docker Compose
+Docker compose contains DataHub, Kafka and Postgres - all necessary dependencies.
+
+#### DataHub bug
+DataHub docker image is locally built from a PR branch containing a bugfix that isn't yet released:
+
+https://github.com/datahub-project/datahub/pull/13347/files
+
+If you want to run this POC with DataHub, you'll need to build all DataHub docker containers locally and tag them `debug`.
 
 ## How to run it?
 ### Prerequisites
-   - Docker and Docker Compose
-   - Java
-   - Gradle
+   - Docker
+   - Java 21
 ### Step by step guide to see the lineage graph in DataHub
 1. Build the java app:
 
 run the build script from the project root:
 ```bash
-  ./build-kafka-client-app.sh
+  ./gradlew clean build
 ```
-It builds the jar package and the Docker image that you'll be using
+It builds the app.jar that's used in the docker compose
 
-2. Run docker-compose with env variables from .env file
+2. Run docker-compose
 ```bash
-  docker-compose --env-file .env up
+  docker compose up -d
 ```
-3. Run the script that will publish messages to two Kafka topics:
+It will take time for the first time as you need to pull docker images. If anything goes wrond, recreate the 
+failing containers.
+
+3. Run the scripts that will create a product in the db and publish a message to the kafka topic (via kafka-rest-proxy)
 ```bash
-  ./publish-kafka-input-messages.sh 
+  ./scripts/create-product.sh
+  ./scripts/publish-sales-transaction.sh 
 ```
 4. Validate in Kafka UI (`localhost:8090`) that the following topics were created:
-- input-topic-1
-- input-topic-2
-- output-topic-1
-- output-topic-2
-- joined-topic
+- sales-transaction
+- enriched-sales-transaction
 
-At this stage you should have all topics created and schemas registered. Now you can ingest Kafka metadata into DataHub.
+At this stage you should have all topics created and schemas registered. Now you can ingest Postgres and Kafka metadata into DataHub.
 
-5. Ingest Kafka data in DataHub:
-- Open http://localhost:9002/ingestion (credentials: `datahub/datahub`)
-- Click "Create new source"
-- Find "Kafka" and fill the form with the following values:
-- Bootstrap Servers: `kafka:9094`
-- Schema Registry URL: `http://schema-registry:8081`
-- Click next, on the "Finish up" screen (4th step) give your cluster a name, for example "Kafka Cluster" and click Save & Run
+5. Open DataHub and ingest metadata from Postgres and Kafka.
+    - Open DataHub UI at http://localhost:9002. Credentials are `datahub/datahub`.
+    - Click the Data Sources button on the left. If it's not there (happened a few times to me), cleaning browser cache
+      or recreating the datahub-frontend-gms helps
+    - You'll be creating thew new data sources:
+        - Postgres:
+            - Host and Port: `postgres:5432`
+            - Username: `postgres`
+            - Password: `postgres`
+            - Database: `java_openlineage_poc_db`
+            - Name: `Postgres or whatever you want`
+        - Kafka:
+            - Bootstrap Servers: `kafka:9094`
+            - Schema Registry URL: `http://schema-registry:8081`
+            - Name: `Kafka or whatever you want`
 
-6. Restart the client apps
+This should trigger two ingestion jobs. After they finish you should see 10 kafka topics and 3 postgres objects ingested
+after clicking the "View all" button right to the Search Bar you can see on top of the page.
+
+6. Run your java-app with OpenLineage integration enabled.
+- stop and delete your java-app docker container
 ```bash
-  docker-compose restart kafka-client-app-1 kafka-client-app-2 kafka-joining-app
+  docker compose down java-app --volumes
 ```
-This is necessary to refresh the DynamicLineageService bean, which is responsible for reporting lineage data to DataHub.
-
-7. Publish messages to the input topics again:
+- Change the openlineage.yml configuration that's in ./openlineage/openlineage.yml
+Comment the `type: console` line, uncomment `type: http` and `url: ...` lines.
+- Run the service again. With the changed configuration mounted, the application will start emitting lineage events.
 ```bash
-  ./publish-kafka-input-messages.sh 
+  docker compose up java-app -d
 ```
-This time the whole setup is waiting, and once your messages are processed, the lineage data will be reported to DataHub.
+
+7. Run the scripts producing data again:
+```bash
+  ./scripts/create-product.sh
+  ./scripts/publish-sales-transaction.sh
+```
+This time the whole setup is ready, and the application will publish the OpenLineage events to the http endpoint.
 
 8. Validate in DataHub UI (`localhost:9002`) that the lineage data is ingested:
 - click the search box on the top
-- open "joined-topic"
+- open "Kafka listener sales-transaction" task (not Pipeline)
 - click the "Lineage" tab
 - unwrap the nodes (left of both output topics) to see the full lineage graph.
 
 Expected result:
 
-<img src="img/lineage-graph-screenshot.png" width="600">
-
-## How is Lineage reported to DataHub? 
-In this setup each service instance registers as a node and reports all topics it's consuming from and publishing to.
-This way you can achieve a graph of your event-driven microservices without any overhead. You can just build a library with 
-this logic, add it to your dependencies and have it report lineage, and you'll see the full lineage graph in DataHub.
-
-This Spring Boot service is using DataHub's library to emit DataHub-specific metadata events. There are two parts of this process.
-
-### Registering as DataHub node
-First, the service needs to register in DataHub as a node (DataJob). This is done in DataHubNodeReporter during startup. 
-The approach taken registers each service as a node, but if you want something more granular - this should be easy to tailor to your needs.
-This is a POC, so I was going for a simple, general solution.
-
-### Registering lineage graph edges
-Then during processing the application will register the lineage graph edges - what topics it's consuming from and publishing to.
-The way this is achieved is by using AOP to intercept topic names from @KafkaListener beans and KafkaTemplate's send methods.
-LineageReportingAspect is intercepting, extracting topic names and registering them in DynamicLineageService. 
-DynamicLineageService is reporting lineage
-
-## Alternative approaches
-### Static context scanning
-You could scan your application during startup - this will be more performant, as AOP adds some overhead, but will be much less flexible - 
-you'd need some conventions, for example listing all topics in properties, or creating one KafkaTemplate per topic you're publishing to.
-
-### Publishing OpenLineage events
-DataHub's integration with OpenLineage is rather fresh and I've seen some issues in it. Might be a better general-purpose solution, 
-I'd love to see an example that doesn't introduce overhead with new topics.
-
-### Scanning Kafka metadata
-AFAIK while you could get group ids from Kafka, producer identifiers are not stored in KRaft. On top of that, to actually draw the graph you'd need to 
-link consumers and producers somehow, so you'd still need some conventions if you chose that approach.
-
-### Using Kafka Headers to draw detailed lineage graph
-You could accumulate lineage data in Kafka headers, but that's a bit more complicated setup, and out of scope of this POC. I might explore that in the future.
-
-# TODO:
-rework to add asynchronous reporting
+<img src="img/lineage-graph.png" width="800">

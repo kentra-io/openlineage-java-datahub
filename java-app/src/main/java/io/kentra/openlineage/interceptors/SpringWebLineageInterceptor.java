@@ -1,4 +1,4 @@
-package io.kentra.openlineage.config;
+package io.kentra.openlineage.interceptors;
 
 import io.kentra.openlineage.lineage.NodeMdcUtil;
 import io.kentra.openlineage.lineage.model.Node;
@@ -16,7 +16,7 @@ import java.util.Set;
  * This intercepts all incoming HTTP requests and if the request is modifying.
  */
 @Slf4j
-public class EndpointPathInterceptor implements HandlerInterceptor {
+public class SpringWebLineageInterceptor implements HandlerInterceptor {
   private final Set<String> modifyingMethods = Set.of("POST", "PUT", "DELETE", "PATCH");
 
   @Override

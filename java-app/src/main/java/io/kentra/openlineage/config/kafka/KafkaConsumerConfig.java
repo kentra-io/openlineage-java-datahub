@@ -32,7 +32,7 @@ public class KafkaConsumerConfig {
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-    props.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "io.kentra.openlineage.lineage.interceptors.kafka.TopicThreadContextInterceptor");
+    props.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "io.kentra.openlineage.lineage.interceptors.kafka.KafkaConsumerLineageInterceptor");
     props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, SalesTransaction.class);
     props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);

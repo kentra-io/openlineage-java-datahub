@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 /**
  * for now just a wrapper around OpenLineageSql
  */
-public class JdbcLineageInterceptor {
+public class PostgresJdbcLineageInterceptor {
   private LineageRegistry lineageRegistry;
 
-  public JdbcLineageInterceptor(LineageRegistry lineageRegistry) {
+  public PostgresJdbcLineageInterceptor(LineageRegistry lineageRegistry) {
     this.lineageRegistry = lineageRegistry;
   }
 

@@ -1,4 +1,4 @@
 transport:
-#  type: console
-  type: http # Switch to HTTP transport after ingesting metadata in DataHub
-  url: http://datahub-gms:8080/openapi/openlineage/api/v1/lineage
+  type: console
+#  type: http # Switch to HTTP transport after ingesting metadata in DataHub
+#  url: http://datahub-gms:8080/openapi/openlineage/api/v1/lineage

@@ -4,7 +4,7 @@ import io.kentra.openlineage.ClockProvider;
 import io.kentra.openlineage.lineage.LineageRegistry;
 import io.kentra.openlineage.lineage.OpenLineageEmitter;
 import io.kentra.openlineage.lineage.OpenLineageEventFactory;
-import io.kentra.openlineage.lineage.interceptors.jdbc.JdbcLineageInterceptor;
+import io.kentra.openlineage.lineage.interceptors.jdbc.PostgresJdbcLineageInterceptor;
 import io.openlineage.client.OpenLineage;
 import io.openlineage.client.OpenLineageClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ public class KentraLineageConfig {
   }
 
   @Bean
-  public JdbcLineageInterceptor jdbcLineageInterceptor(LineageRegistry registrar) {
-    return new JdbcLineageInterceptor(registrar);
+  public PostgresJdbcLineageInterceptor jdbcLineageInterceptor(LineageRegistry registrar) {
+    return new PostgresJdbcLineageInterceptor(registrar);
   }
 }
