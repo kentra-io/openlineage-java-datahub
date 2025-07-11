@@ -13,7 +13,7 @@ logging:
     io.openlineage: DEBUG
 openlineage:
   config:
-    location: openlineage-test.yml
+    location: classpath:openlineage-test.yml
 wiremock:
   server:
     verbose: true

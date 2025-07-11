@@ -5,7 +5,7 @@ spring:
     init:
       mode: always
   datasource:
-    url: jdbc:postgresql://localhost:5432/debezium_poc_db
+    url: jdbc:postgresql://localhost:5432/java_openlineage_poc_db
     username: postgres
     password: postgres
   kafka:
@@ -14,9 +14,9 @@ spring:
       auto-offset-reset: earliest
 openlineage:
   config:
-    location: openlineage.yml
+    location: classpath:openlineage.yml
 server:
-  port: 8085
+  port: 8087
 kafka:
   topics:
     sales-transaction: "sales-transaction"

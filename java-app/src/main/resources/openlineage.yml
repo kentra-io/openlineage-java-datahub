@@ -1,4 +1,5 @@
 transport:
   type: console
 #  type: http # Switch to HTTP transport after ingesting metadata in DataHub
+#  localhost url is for running the app locally and integrating with DataHub running in Docker Compose
 #  url: http://localhost:8080/openapi/openlineage/api/v1/lineage

@@ -9,13 +9,38 @@ volumes:
   postgres_data:
 
 services:
+  java-app:
+    build:
+      context: .
+      dockerfile: java-app/Dockerfile
+    image: kentra/openlineage-java-app:latest
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8087:8087"
+    environment:
+      - SERVER_PORT=8087
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/java_openlineage_poc_db
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9094
+      - OPENLINEAGE_CONFIG_LOCATION=file:/app/openlineage.yml
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8087/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./openlineage/openlineage.yml:/app/openlineage.yml
   postgres:
     image: postgres:15
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: debezium_poc_db
+      POSTGRES_DB: java_openlineage_poc_db
     ports:
       - "5432:5432"
     volumes:
