@@ -11,6 +11,7 @@ import io.openlineage.sql.OpenLineageSql;
 import io.openlineage.sql.SqlMeta;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,12 +27,12 @@ public class PostgresJdbcLineageInterceptor {
   }
 
   public void registerJdbcLineage(String dbUrl, String sql) {
-    Node node = NodeMdcUtil.getFromMdc();
-    if (node == null) {
+    Optional<Node> node = NodeMdcUtil.getFromMdc();
+    if (node.isEmpty()) {
       return;
     }
     OpenLineageSql.parse(List.of(sql))
-        .map(it -> mapToLineage(node, dbUrl, it))
+        .map(it -> mapToLineage(node.get(), dbUrl, it))
         .ifPresent(lineageRegistry::registerLineage);
   }
 

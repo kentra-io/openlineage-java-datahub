@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.util.Optional;
+
 public class NodeMdcUtil {
   private static Logger log = LoggerFactory.getLogger(NodeMdcUtil.class);
 
@@ -16,14 +18,14 @@ public class NodeMdcUtil {
     MDC.put(LINEAGE_NODE_TYPE, node.type().toString());
   }
 
-  public static Node getFromMdc() {
+  public static Optional<Node> getFromMdc() {
     var nodeName = MDC.get(LINEAGE_NODE_NAME);
     var nodeType = MDC.get(LINEAGE_NODE_TYPE);
     if (nodeName == null || nodeType == null) {
       log.warn("Failed to retrieve node from MDC. Found nodeName: {}, nodeType: {}", nodeName, nodeType);
-      return null;
+      return Optional.empty();
     }
-    return new Node(nodeName, Node.Type.valueOf(nodeType));
+    return Optional.of(new Node(nodeName, Node.Type.valueOf(nodeType)));
   }
 
   public static void clearNodeMdc() {

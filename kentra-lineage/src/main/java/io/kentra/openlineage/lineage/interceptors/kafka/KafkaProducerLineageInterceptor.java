@@ -18,12 +18,13 @@ public class KafkaProducerLineageInterceptor<K, V> implements ProducerIntercepto
 
   @Override
   public ProducerRecord<K, V> onSend(ProducerRecord<K, V> producerRecord) {
-    var lineageNode = NodeMdcUtil.getFromMdc();
-    lineageRegistry.registerLineage(new Lineage(
-        lineageNode,
-        Set.of(new KafkaDataset(hostname, port, lineageNode.name())),
-        Set.of(new KafkaDataset(hostname, port, producerRecord.topic()))
-    ));
+    NodeMdcUtil.getFromMdc().ifPresent(node -> {
+      lineageRegistry.registerLineage(new Lineage(
+          node,
+          Set.of(new KafkaDataset(hostname, port, node.name())),
+          Set.of(new KafkaDataset(hostname, port, producerRecord.topic()))
+      ));
+    });
     return producerRecord;
   }
 

@@ -15,7 +15,7 @@ public class NodeMdcUtilTest {
     NodeMdcUtil.putInMdc(httpNode);
 
     // when
-    var retrievedNode = NodeMdcUtil.getFromMdc();
+    var retrievedNode = NodeMdcUtil.getFromMdc().get();
 
     // then
     assertEquals(httpNode, retrievedNode);

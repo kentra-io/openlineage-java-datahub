@@ -24,7 +24,7 @@ public class SalesTransactionListener {
 
   @KafkaListener(topics = "${kafka.topics.sales-transaction}", groupId = "${spring.application.name}")
   public void processSalesTransaction(SalesTransaction transaction) throws ExecutionException, InterruptedException {
-    log.debug("Entering listener, Lineage Node retrieved from context: {}", NodeMdcUtil.getFromMdc());
+    log.debug("Entering listener, Lineage Node retrieved from context: {}", NodeMdcUtil.getFromMdc().get());
     var product = productRepository.findById(transaction.productId()).get();
     var enrichedTransaction = enrich(transaction, product);
     kafkaTemplate.send(enrichedSalesTransaction, enrichedTransaction).get();
