@@ -18,7 +18,7 @@ public class LineageRegistry {
         this.openLineageEmitter = openLineageEmitter;
     }
 
-    public void registerLineage(Lineage lineage) {
+    public synchronized void registerLineage(Lineage lineage) {
         var node = lineage.node();
         if (lineageMap.containsKey(node)) {
             Lineage registeredNodeLineage = lineageMap.get(node);
@@ -26,6 +26,7 @@ public class LineageRegistry {
             boolean modifiedInputs = newLineage.inputs().addAll(lineage.inputs());
             boolean modifiedOutputs = newLineage.outputs().addAll(lineage.outputs());
             if (modifiedInputs || modifiedOutputs) {
+                lineageMap.put(node, newLineage);
                 openLineageEmitter.emitRunEvent(newLineage);
                 log.info("Updated lineage for node: {}. Current lineage: {}", node, lineageMap.get(node));
             }
