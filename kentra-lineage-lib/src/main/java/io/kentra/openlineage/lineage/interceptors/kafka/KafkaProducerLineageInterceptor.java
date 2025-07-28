@@ -21,7 +21,7 @@ public class KafkaProducerLineageInterceptor<K, V> implements ProducerIntercepto
     NodeMdcUtil.getFromMdc().ifPresent(node -> {
       lineageRegistry.registerLineage(new Lineage(
           node,
-          Set.of(new KafkaDataset(hostname, port, node.name())),
+          Set.of(),
           Set.of(new KafkaDataset(hostname, port, producerRecord.topic()))
       ));
     });
@@ -43,7 +43,7 @@ public class KafkaProducerLineageInterceptor<K, V> implements ProducerIntercepto
 
   }
 
-  public static void setLineageRegistrar(LineageRegistry lineageRegistry) {
+  public static void setLineageRegistry(LineageRegistry lineageRegistry) {
     KafkaProducerLineageInterceptor.lineageRegistry = lineageRegistry;
   }
 

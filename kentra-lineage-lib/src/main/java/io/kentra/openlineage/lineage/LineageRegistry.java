@@ -18,22 +18,29 @@ public class LineageRegistry {
         this.openLineageEmitter = openLineageEmitter;
     }
 
-    public synchronized void registerLineage(Lineage lineage) {
-        var node = lineage.node();
+    public synchronized void registerLineage(Lineage rawLineage) {
+        var node = rawLineage.node();
         if (lineageMap.containsKey(node)) {
             Lineage registeredNodeLineage = lineageMap.get(node);
             Lineage newLineage = registeredNodeLineage.copy();
-            boolean modifiedInputs = newLineage.inputs().addAll(lineage.inputs());
-            boolean modifiedOutputs = newLineage.outputs().addAll(lineage.outputs());
+            boolean modifiedInputs = newLineage.inputs().addAll(rawLineage.inputs());
+            boolean modifiedOutputs = newLineage.outputs().addAll(rawLineage.outputs());
             if (modifiedInputs || modifiedOutputs) {
-                lineageMap.put(node, newLineage);
-                openLineageEmitter.emitRunEvent(newLineage);
+                updateLineage(newLineage);
                 log.info("Updated lineage for node: {}. Current lineage: {}", node, lineageMap.get(node));
             }
         } else {
-            lineageMap.put(lineage.node(), lineage);
-            openLineageEmitter.emitRunEvent(lineage);
+            var lineage = rawLineage.copy();
+            updateLineage(lineage);
             log.info("Registered new lineage for node: {}. Current lineage: {}", node, lineageMap.get(node));
+        }
+    }
+
+    private void updateLineage(Lineage newLineage) {
+        newLineage.inputs().removeIf(newLineage.outputs()::contains);
+        lineageMap.put(newLineage.node(), newLineage);
+        if (!newLineage.outputs().isEmpty()) {
+            openLineageEmitter.emitRunEvent(newLineage);
         }
     }
 

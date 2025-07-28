@@ -32,6 +32,7 @@ import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -59,10 +60,8 @@ public class SalesTransactionListenerIT extends IntegrationTest {
   @MockitoSpyBean
   private MockEnrichedSalesTransactionListener spyListener;
 
-  @Value("classpath:expected-events/sales-transaction/1-postgres-lineage-input.json")
-  private Resource firstExpectedLineageEventFile;
-  @Value("classpath:expected-events/sales-transaction/2-kafka-lineage-output.json")
-  private Resource secondExpectedLineageEventFile;
+  @Value("classpath:expected-events/sales-transaction/sales-transaction-expected-lineage.json")
+  private Resource expectedLineageEvent;
 
   @Container
   static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
@@ -95,9 +94,7 @@ public class SalesTransactionListenerIT extends IntegrationTest {
     Mockito.verify(spyListener, Mockito.timeout(30000))
         .listen(Mockito.eq(expectedTransaction()));
 
-    // wiremock returns events in the reverse order - at index 0 is the most recent event
-    verifyReceivedEvent(mockLineageServer.getAllServeEvents().get(1), firstExpectedLineageEventFile);
-    verifyReceivedEvent(mockLineageServer.getAllServeEvents().get(0), secondExpectedLineageEventFile);
+    verifyReceivedEvent(mockLineageServer.getAllServeEvents().get(0), expectedLineageEvent);
   }
 
   private void verifyReceivedEvent(ServeEvent receivedEvent, Resource expectedEventFile) throws IOException {
@@ -136,13 +133,12 @@ public class SalesTransactionListenerIT extends IntegrationTest {
         1,
         "name",
         2,
-        6
+        new BigDecimal("6")
     );
   }
 
-  @Test
-  @Disabled
-    // enable for manual testing
+//  @Test
+//  enable for manual testing
   void manualSendToDockerCompose() throws Exception {
     // given
     RestTemplate restTemplate = new RestTemplate();

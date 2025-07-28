@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':kentra-lineage')
+    implementation project(':kentra-lineage-lib')
 
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-web")

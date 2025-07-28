@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.concurrent.ExecutionException;
 
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class SalesTransactionListener {
         transaction.productId(),
         product.name(),
         product.price(),
-        transaction.amount() * product.price()
+        new BigDecimal(transaction.amount() * product.price())
     );
   }
 }

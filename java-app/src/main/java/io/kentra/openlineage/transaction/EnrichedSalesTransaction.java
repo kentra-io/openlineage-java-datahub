@@ -1,5 +1,6 @@
 package io.kentra.openlineage.transaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,6 +12,6 @@ public record EnrichedSalesTransaction (
     Integer productId,
     String productName,
     Integer productPrice,
-    Integer transactionValue
+    BigDecimal transactionValue
 ) {
 }

@@ -1,6 +1,7 @@
 package io.kentra.openlineage.config.kafka;
 
 import io.kentra.openlineage.lineage.LineageRegistry;
+import io.kentra.openlineage.lineage.interceptors.kafka.KafkaConsumerLineageInterceptor;
 import io.kentra.openlineage.lineage.interceptors.kafka.KafkaProducerLineageInterceptor;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,14 @@ public class KafkaLineageInterceptorInjector {
 
   @PostConstruct
   public void inject() {
-    KafkaProducerLineageInterceptor.setLineageRegistrar(lineageRegistry);
+    KafkaProducerLineageInterceptor.setLineageRegistry(lineageRegistry);
     String[] hostAndPort = parseBootstrapServers(kafkaBootstrapServers);
     KafkaProducerLineageInterceptor.setHostname(hostAndPort[0]);
     KafkaProducerLineageInterceptor.setPort(hostAndPort[1]);
+
+    KafkaConsumerLineageInterceptor.setLineageRegistry(lineageRegistry);
+    KafkaConsumerLineageInterceptor.setHostname(hostAndPort[0]);
+    KafkaConsumerLineageInterceptor.setPort(hostAndPort[1]);
   }
 
   private String[] parseBootstrapServers(String kafkaBootstrapServers) {
